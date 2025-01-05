@@ -1,4 +1,4 @@
-name: Run Docker Script with Parameter
+name: Run Docker Script with Root Access
 
 on:
   push:
@@ -13,9 +13,15 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    # Step 1: Download and Run Docker.sh with Parameter
-    - name: Download and Run Docker.sh
+    # Step 1: Download Docker.sh script
+    - name: Download Docker.sh
+      run: wget https://raw.githubusercontent.com/choir94/Airdropguide/refs/heads/main/Docker.sh
+
+    # Step 2: Debug root access and run Docker.sh
+    - name: Debug Root Access and Run Script
       run: |
-        wget https://raw.githubusercontent.com/choir94/Airdropguide/refs/heads/main/Docker.sh
+        echo "Checking root access..."
+        whoami
+        id
         chmod +x Docker.sh
-        ./Docker.sh 6D6BEE80-B63D-47C4-9253-89015DA51A41
+        sudo ./Docker.sh 6D6BEE80-B63D-47C4-9253-89015DA51A41
