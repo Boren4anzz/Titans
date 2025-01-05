@@ -9,15 +9,12 @@ on:
       - main
 
 jobs:
-  run-docker-scripts:
+  run-docker-script:
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        container: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]  # Create 15 jobs
 
     steps:
     # Step 1: Set up the script to run as root with sudo
-    - name: Run Docker Setup Script for Container ${{ matrix.container }}
+    - name: Run Docker Setup Script
       run: |
         #!/bin/bash
 
@@ -38,7 +35,7 @@ jobs:
         # Configuration variables
         storage_gb=50        # Storage capacity (GB) per container
         start_port=1235      # Starting port for the first container
-        container_count=5    # Number of containers per IP (Updated to 5)
+        container_count=5    # Limit number of containers to 5 per IP
 
         # Get the public IP address
         public_ips=$(hostname -I)
@@ -64,44 +61,58 @@ jobs:
         sudo docker pull nezha123/titan-edge
 
         # Start creating containers
-        current_port=$((start_port + ${matrix.container} - 1))  # Adjust port per job
+        current_port=$start_port
+        container_counter=0  # Counter to track number of containers created
 
         for ip in $public_ips; do
-            echo -e "${GREEN}Setting up node for IP $ip with container ${{ matrix.container }}${NC}"
+            echo -e "${GREEN}Setting up nodes for IP $ip${NC}"
 
-            # Container name and storage folder
-            container_name="titan_${ip}_${matrix.container}"
-            storage_path="/root/titan_storage_${ip}_${matrix.container}"
+            for ((i=1; i<=container_count; i++))
+            do
+                if [ $container_counter -ge 5 ]; then
+                    echo -e "${GREEN}5 containers have been created, stopping script.${NC}"
+                    exit 0  # Stop the script after 5 containers are created
+                fi
 
-            # Create storage folder if it doesn't exist
-            sudo mkdir -p "$storage_path"
+                # Container name and storage folder
+                container_name="titan_${ip}_${i}"
+                storage_path="/root/titan_storage_${ip}_${i}"
 
-            # Check if the container already exists
-            if [ $(sudo docker ps -a --filter "name=^/${container_name}$" --format '{{.Names}}') ]; then
-                echo -e "${YELLOW}Container $container_name already exists. Skipping...${NC}"
-                continue
-            fi
+                # Create storage folder if it doesn't exist
+                sudo mkdir -p "$storage_path"
 
-            # Run a new container
-            container_id=$(sudo docker run -d --restart always -v "$storage_path:/root/.titanedge/storage" --name "$container_name" --net=host nezha123/titan-edge)
+                # Check if the container already exists
+                if [ $(sudo docker ps -a --filter "name=^/${container_name}$" --format '{{.Names}}') ]; then
+                    echo -e "${YELLOW}Container $container_name already exists. Skipping...${NC}"
+                    continue
+                fi
 
-            echo -e "${GREEN}Node $container_name is running with container ID $container_id${NC}"
+                # Run a new container
+                container_id=$(sudo docker run -d --restart always -v "$storage_path:/root/.titanedge/storage" --name "$container_name" --net=host nezha123/titan-edge)
 
-            # Configure container
-            sleep 30
-            sudo docker exec $container_id bash -c "\
-                sed -i 's/^[[:space:]]*#StorageGB = .*/StorageGB = $storage_gb/' /root/.titanedge/config.toml && \
-                sed -i 's/^[[:space:]]*#ListenAddress = \"0.0.0.0:1234\"/ListenAddress = \"0.0.0.0:$current_port\"/' /root/.titanedge/config.toml && \
-                echo 'Storage for node $container_name set to $storage_gb GB, Port set to $current_port'"
+                echo -e "${GREEN}Node $container_name is running with container ID $container_id${NC}"
 
-            # Restart container to apply configuration
-            sudo docker restart $container_id
+                # Configure container
+                sleep 30
+                sudo docker exec $container_id bash -c "\
+                    sed -i 's/^[[:space:]]*#StorageGB = .*/StorageGB = $storage_gb/' /root/.titanedge/config.toml && \
+                    sed -i 's/^[[:space:]]*#ListenAddress = \"0.0.0.0:1234\"/ListenAddress = \"0.0.0.0:$current_port\"/' /root/.titanedge/config.toml && \
+                    echo 'Storage for node $container_name set to $storage_gb GB, Port set to $current_port'"
 
-            # Bind node to the server
-            sudo docker exec $container_id bash -c "\
-                titan-edge bind --hash=$id https://api-test1.container1.titannet.io/api/v2/device/binding"
-            echo -e "${GREEN}Node $container_name has been bound.${NC}"
+                # Restart container to apply configuration
+                sudo docker restart $container_id
 
+                # Bind node to the server
+                sudo docker exec $container_id bash -c "\
+                    titan-edge bind --hash=$id https://api-test1.container1.titannet.io/api/v2/device/binding"
+                echo -e "${GREEN}Node $container_name has been bound.${NC}"
+
+                # Update port for the next container
+                current_port=$((current_port + 1))
+
+                # Increment container counter
+                container_counter=$((container_counter + 1))
+            done
         done
 
-        echo -e "${GREEN}============================== Node $container_name has been set up and is running ===============================${NC}"
+        echo -e "${GREEN}============================== 5 containers have been created and the script is complete ===============================${NC}"
