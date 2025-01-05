@@ -10,7 +10,7 @@ on:
 
 jobs:
   run-docker-script:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     # Step 1: Download and Run Docker.sh with Parameter
