@@ -35,7 +35,7 @@ jobs:
         # Configuration variables
         storage_gb=50        # Storage capacity (GB) per container
         start_port=1235      # Starting port for the first container
-        container_count=15   # Number of containers per IP
+        container_count=5    # Number of containers per IP (Updated to 5)
 
         # Get the public IP address
         public_ips=$(hostname -I)
@@ -106,4 +106,4 @@ jobs:
             done
         done
 
-        echo -e "${GREEN}============================== All 15 nodes per IP have been set up and are running ===============================${NC}"
+        echo -e "${GREEN}============================== All 5 nodes per IP have been set up and are running ===============================${NC}"
